@@ -1,6 +1,13 @@
 mod utils;
 
 use wasm_bindgen::prelude::*;
+extern crate web_sys;
+// A macro to provide `println!(..)`-style syntax for `console.log` logging.
+macro_rules! log {
+    ( $( $t:tt )* ) => {
+        web_sys::console::log_1(&format!( $( $t )* ).into());
+    }
+}
 
 // When the `wee_alloc` feature is enabled, use `wee_alloc` as the global
 // allocator.
@@ -91,7 +98,7 @@ impl Board {
   }
 
 
-  pub fn area(&self) -> *const u32 {
+  pub fn get_area(&self) -> *const u32 {
     self.area.as_ptr()
   }
 
@@ -114,20 +121,24 @@ impl Board {
 
    pub fn get_snake_position(&mut self) {
     let position = (self.height * self.snake_head_y) + self.snake_head_x;
-    let mut counter = 1;
-    for element in &mut self.area {
-      if counter == position{
-        *element += 1 as u32;
-      }
-      counter += 1;
-    }
+    // let mut counter = 1;
+    // for element in self.area.iter_mut() {
+    //   if counter == position{
+    //     *element = 1 as u32;
+    //   }
+    //   counter += 1;
+    // }
+    self.area[position as usize] = 1;
+    log!("area {:?}", self.area)
   }
 
   pub fn increment_snake_x(&mut self) {
     if self.snake_head_x < 9{
         self.snake_head_x += 1;
+        self.get_snake_position()
     } else {
       self.snake_head_x = 0;
+      self.get_snake_position()
     }
   }
 
@@ -137,6 +148,7 @@ impl Board {
     } else {
       self.snake_head_x = 9;
     }
+    self.get_snake_position()
   }
 
   pub fn increment_snake_y(&mut self) {
@@ -145,6 +157,7 @@ impl Board {
     } else {
       self.snake_head_y = 0;
     }
+    self.get_snake_position()
   }
 
    pub fn decrement_snake_y(&mut self) {
@@ -153,6 +166,7 @@ impl Board {
     } else {
       self.snake_head_y = 9;
     }
+    self.get_snake_position()
   }
 }
 
