@@ -98,8 +98,8 @@ impl Board {
   }
 
 
-  pub fn get_area(&self) -> *const u32 {
-    self.area.as_ptr()
+  pub fn get_area(&self) -> Vec<u32> {
+    self.area.clone()
   }
 
   pub fn new() -> Board {
@@ -129,7 +129,7 @@ impl Board {
     //   counter += 1;
     // }
     self.area[position as usize] = 1;
-    log!("area {:?}", self.area)
+    // log!("area {:?}", self.area)
   }
 
   pub fn increment_snake_x(&mut self) {
