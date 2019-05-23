@@ -9,6 +9,8 @@ macro_rules! log {
     }
 }
 
+
+
 // When the `wee_alloc` feature is enabled, use `wee_alloc` as the global
 // allocator.
 #[cfg(feature = "wee_alloc")]
@@ -26,27 +28,32 @@ static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
 // }
 
 #[wasm_bindgen]
-#[repr(u8)]
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum SnakeBlock {
-  SquareSize = 100
-}
-
-
-#[wasm_bindgen]
+#[derive(Clone, Debug)]
 pub struct Snake {
-  snake_blocks: Vec<SnakeBlock>,
+  snake_blocks: Vec<u32>,
 }
 
 #[wasm_bindgen]
 impl Snake {
 
-   pub fn snake_blocks(&self) -> *const SnakeBlock {
-    self.snake_blocks.as_ptr()
+   pub fn snake_blocks(&self) -> Vec<u32> {
+    self.snake_blocks.clone()
+  }
+
+  pub fn get_snake_length(&self) -> usize {
+    self.snake_blocks.len()
+  }
+
+  pub fn add_snake_block(&mut self) {
+    self.snake_blocks.push(100);
+  }
+
+  pub fn log(&self){
+     log!("area {}", self.get_snake_length());
   }
 
   pub fn new() -> Snake {
-    let snake_blocks = vec![SnakeBlock::SquareSize];
+    let snake_blocks = vec![100];
 
     Snake {
       snake_blocks,
@@ -55,16 +62,33 @@ impl Snake {
 }
 
 #[wasm_bindgen]
+pub fn log_snake(snake: Snake){
+    log!("snake {:?}", snake)
+  }
+
+
+#[wasm_bindgen]
 pub struct Board {
   width: u32,
   height: u32,
   area: Vec<u32>,
   snake_head_x: u32,
   snake_head_y: u32,
+  body_x_positions: Vec<u32>,
+  body_y_positions: Vec<u32>,
 }
 
 #[wasm_bindgen]
 impl Board {
+
+  pub fn get_body_x_positions(&self) -> Vec<u32> {
+    self.body_x_positions.clone()
+  }
+
+   pub fn get_body_y_positions(&self) -> Vec<u32> {
+    self.body_y_positions.clone()
+  }
+
   pub fn get_width(&self) -> u32 {
     self.width
   }
@@ -109,6 +133,8 @@ impl Board {
     let area = vec![0; 100];
     let snake_head_x = 5;
     let snake_head_y = 5;
+    let body_x_positions = vec![500];
+    let body_y_positions = vec![500];
 
     Board {
       width,
@@ -116,57 +142,88 @@ impl Board {
       area,
       snake_head_x,
       snake_head_y,
+      body_x_positions,
+      body_y_positions,
     }
   }
 
-   pub fn get_snake_position(&mut self) {
-    let position = (self.height * self.snake_head_y) + self.snake_head_x;
-    // let mut counter = 1;
-    // for element in self.area.iter_mut() {
-    //   if counter == position{
-    //     *element = 1 as u32;
-    //   }
-    //   counter += 1;
-    // }
-    self.area[position as usize] = 1;
-    // log!("area {:?}", self.area)
+  pub fn add_snake_block(&mut self, snake: &mut Snake){
+    snake.add_snake_block();
+    if self.body_x_positions.len() == 0 {
+      self.body_x_positions.push(self.snake_head_x - 100);
+      self.body_y_positions.push(self.snake_head_y);
+    } else {
+      let last_x = self.body_x_positions.last().cloned().unwrap();
+      let last_y = self.body_y_positions.last().cloned().unwrap();
+      self.body_x_positions.push(last_x - 100);
+      self.body_y_positions.push(last_y);
+    }
+    //  log!("snake {:?}", self.body_x_positions);
+    //  log!("snake {:?}", self.body_y_positions);
   }
 
-  pub fn increment_snake_x(&mut self) {
+   pub fn get_snake_position(&mut self, snake: &Snake) {
+    // let position = (self.height * self.snake_head_y) + self.snake_head_x;
+    let mut prev_x_value = 0;
+    let mut prev_y_value = 0;
+    let mut temp_x = 0;
+    let mut temp_y = 0;
+    self.area = vec![0; 100];
+    for (index, element) in snake.snake_blocks().iter().enumerate() {
+      if index == 0 {
+        prev_x_value = self.body_x_positions[index];
+        prev_y_value = self.body_y_positions[index];
+        self.body_x_positions[index as usize] = self.width * self.snake_head_x * 10;
+        self.body_y_positions[index as usize] = self.height * self.snake_head_y * 10;
+      } else {
+        temp_x = prev_x_value;
+        temp_y = prev_y_value;
+        prev_x_value = self.body_x_positions[index];
+        prev_y_value = self.body_y_positions[index];
+        self.body_x_positions[index as usize] = temp_x;
+        self.body_y_positions[index as usize] = temp_y;
+      }
+      let position = (self.body_y_positions[index as usize] / 10) + (self.body_x_positions[index as usize] / 100);
+      self.area[position as usize] = 1;
+    }
+    log!("area {:?}", self.area);
+    // log!("snake {:?}", self.body_y_positions);
+  }
+  
+  pub fn increment_snake_x(&mut self, snake: &Snake) {
     if self.snake_head_x < 9{
         self.snake_head_x += 1;
-        self.get_snake_position()
     } else {
       self.snake_head_x = 0;
-      self.get_snake_position()
     }
+    self.get_snake_position(snake)
   }
 
-  pub fn decrement_snake_x(&mut self) {
+  pub fn decrement_snake_x(&mut self, snake: &Snake) {
     if self.snake_head_x > 0{
         self.snake_head_x -= 1;
     } else {
       self.snake_head_x = 9;
     }
-    self.get_snake_position()
+    self.get_snake_position(snake)
   }
 
-  pub fn increment_snake_y(&mut self) {
+  pub fn increment_snake_y(&mut self, snake: &Snake) {
     if self.snake_head_y < 9{
         self.snake_head_y += 1;
     } else {
       self.snake_head_y = 0;
     }
-    self.get_snake_position()
+    self.get_snake_position(snake)
   }
 
-   pub fn decrement_snake_y(&mut self) {
+   pub fn decrement_snake_y(&mut self, snake: &Snake) {
     if self.snake_head_y > 0{
         self.snake_head_y -= 1;
     } else {
       self.snake_head_y = 9;
     }
-    self.get_snake_position()
+    self.get_snake_position(snake)
   }
 }
 
