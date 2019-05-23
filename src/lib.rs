@@ -184,9 +184,10 @@ impl Board {
         self.body_y_positions[index as usize] = temp_y;
       }
       let position = (self.body_y_positions[index as usize] / 10) + (self.body_x_positions[index as usize] / 100);
+      log!("area {}", position);
       self.area[position as usize] = 1;
     }
-    log!("area {:?}", self.area);
+    // log!("area {:?}", self.area);
     // log!("snake {:?}", self.body_y_positions);
   }
   
