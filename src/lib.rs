@@ -1,15 +1,14 @@
 mod utils;
 
 use wasm_bindgen::prelude::*;
+use rand::Rng;
 extern crate web_sys;
-// A macro to provide `println!(..)`-style syntax for `console.log` logging.
+
 macro_rules! log {
     ( $( $t:tt )* ) => {
         web_sys::console::log_1(&format!( $( $t )* ).into());
     }
 }
-
-
 
 // When the `wee_alloc` feature is enabled, use `wee_alloc` as the global
 // allocator.
@@ -17,20 +16,51 @@ macro_rules! log {
 #[global_allocator]
 static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
 
-// #[wasm_bindgen]
-// extern {
-//     fn alert(s: &str);
-// }
+#[wasm_bindgen]
+pub struct Food {
+  is_eaten: bool,
+  // numeric_position: u32,
+  // coordinate_position: Vec<u32>,
+}
 
-// #[wasm_bindgen]
-// pub fn greet() {
-//     alert("Hello, snake!");
-// }
+#[wasm_bindgen]
+impl Food {
+  pub fn new() -> Food {
+    let is_eaten = false;
+    // let numeric_position = rand::thread_rng().gen_range(1, 100);
+    // let y = ((numeric_position as f64 / 10.0).floor()) as u32;
+    // let x = numeric_position % 10;
+    // let coordinate_position = vec![x, y];
+
+    Food {
+      is_eaten,
+      // numeric_position,
+      // coordinate_position,
+    }
+  }
+
+  pub fn get_is_eaten(&self) -> bool {
+    self.is_eaten
+  }
+
+  pub fn set_is_eaten(&mut self) {
+    self.is_eaten = !self.is_eaten;
+  }
+
+  // pub fn get_numeric_position(&self) -> u32 {
+  //   self.numeric_position
+  // }
+
+  // pub fn get_coordinate_position(&self) -> Vec<u32> {
+  //   self.coordinate_position.clone()
+  // }
+}
 
 #[wasm_bindgen]
 #[derive(Clone, Debug)]
 pub struct Snake {
   snake_blocks: Vec<u32>,
+  is_alive: bool,
 }
 
 #[wasm_bindgen]
@@ -48,24 +78,24 @@ impl Snake {
     self.snake_blocks.push(100);
   }
 
-  pub fn log(&self){
-     log!("area {}", self.get_snake_length());
+  pub fn get_is_alive(&self) -> bool {
+    self.is_alive
+  }
+
+  pub fn set_is_alive(&mut self) {
+    self.is_alive = !self.is_alive
   }
 
   pub fn new() -> Snake {
     let snake_blocks = vec![100];
+    let is_alive = true;
 
     Snake {
       snake_blocks,
+      is_alive,
     }
   }
 }
-
-#[wasm_bindgen]
-pub fn log_snake(snake: Snake){
-    log!("snake {:?}", snake)
-  }
-
 
 #[wasm_bindgen]
 pub struct Board {
@@ -158,12 +188,9 @@ impl Board {
       self.body_x_positions.push(last_x - 100);
       self.body_y_positions.push(last_y);
     }
-    //  log!("snake {:?}", self.body_x_positions);
-    //  log!("snake {:?}", self.body_y_positions);
   }
 
    pub fn get_snake_position(&mut self, snake: &Snake) {
-    // let position = (self.height * self.snake_head_y) + self.snake_head_x;
     let mut prev_x_value = 0;
     let mut prev_y_value = 0;
     let mut temp_x = 0;
@@ -184,46 +211,54 @@ impl Board {
         self.body_y_positions[index as usize] = temp_y;
       }
       let position = (self.body_y_positions[index as usize] / 10) + (self.body_x_positions[index as usize] / 100);
-      log!("area {}", position);
       self.area[position as usize] = 1;
     }
-    // log!("area {:?}", self.area);
-    // log!("snake {:?}", self.body_y_positions);
+  }
+
+  pub fn detect_collision(&mut self, snake: &mut Snake) {
+    let position = (self.height * self.snake_head_y) + self.snake_head_x;
+    if self.area[position as usize] == 1 {
+        snake.set_is_alive()
+    }
   }
   
-  pub fn increment_snake_x(&mut self, snake: &Snake) {
+  pub fn increment_snake_x(&mut self, snake: &mut Snake) {
     if self.snake_head_x < 9{
         self.snake_head_x += 1;
     } else {
       self.snake_head_x = 0;
     }
+    self.detect_collision(snake);
     self.get_snake_position(snake)
   }
 
-  pub fn decrement_snake_x(&mut self, snake: &Snake) {
+  pub fn decrement_snake_x(&mut self, snake: &mut Snake) {
     if self.snake_head_x > 0{
         self.snake_head_x -= 1;
     } else {
       self.snake_head_x = 9;
     }
+    self.detect_collision(snake);
     self.get_snake_position(snake)
   }
 
-  pub fn increment_snake_y(&mut self, snake: &Snake) {
+  pub fn increment_snake_y(&mut self, snake: &mut Snake) {
     if self.snake_head_y < 9{
         self.snake_head_y += 1;
     } else {
       self.snake_head_y = 0;
     }
+    self.detect_collision(snake);
     self.get_snake_position(snake)
   }
 
-   pub fn decrement_snake_y(&mut self, snake: &Snake) {
+   pub fn decrement_snake_y(&mut self, snake: &mut Snake) {
     if self.snake_head_y > 0{
         self.snake_head_y -= 1;
     } else {
       self.snake_head_y = 9;
     }
+    self.detect_collision(snake);
     self.get_snake_position(snake)
   }
 }
