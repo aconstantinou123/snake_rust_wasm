@@ -58,15 +58,8 @@ impl Food {
     self.numeric_position = position;
     let y = ((self.numeric_position as f64 / 10.0).floor() * 100.0 + 50.0) as u32;
     let x = (self.numeric_position % 10) * 100 + 50;
-    log!("x {}", x);
     self.coordinate_position = vec![x, y];
     if board.position_is_empty(position) == true { true } else { false }
-      // board.add_food_to_area(position);
-    // } else {
-    //   log!("recurse");
-    //   self.set_food_position(position, board)
-    // }
-    // board.add_food_to_area(position)
   }
 }
 
