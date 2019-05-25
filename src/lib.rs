@@ -54,18 +54,19 @@ impl Food {
     self.coordinate_position.clone()
   }
 
-  pub fn set_food_position(&mut self, position: u32, board: &mut Board) {
+  pub fn check_new_food_position(&mut self, position: u32, board: &mut Board) -> bool {
     self.numeric_position = position;
     let y = ((self.numeric_position as f64 / 10.0).floor() * 100.0 + 50.0) as u32;
     let x = (self.numeric_position % 10) * 100 + 50;
+    log!("x {}", x);
     self.coordinate_position = vec![x, y];
-    // if board.position_is_empty(position) == true {
-    //   log!("free");
-    //   board.add_food_to_area(position)
+    if board.position_is_empty(position) == true { true } else { false }
+      // board.add_food_to_area(position);
     // } else {
+    //   log!("recurse");
     //   self.set_food_position(position, board)
     // }
-    board.add_food_to_area(position)
+    // board.add_food_to_area(position)
   }
 }
 
@@ -196,7 +197,6 @@ impl Board {
 
   pub fn add_food_to_area(&mut self, position: u32) {
     self.area[position as usize] = 2;
-    log!("area {:?}", self.area);
   }
 
   pub fn add_snake_block(&mut self, snake: &mut Snake){
@@ -240,7 +240,6 @@ impl Board {
       let position = (self.body_y_positions[index as usize] / 10) + (self.body_x_positions[index as usize] / 100);
       self.area[position as usize] = 1;
     }
-    log!("area {:?}", self.area);
   }
 
   pub fn detect_collision(&mut self, snake: &mut Snake, food: &mut Food) {
