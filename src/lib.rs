@@ -90,7 +90,7 @@ impl Snake {
   }
 
   pub fn set_is_alive(&mut self) {
-    self.is_alive = !self.is_alive
+    self.is_alive = false
   }
 
   pub fn new() -> Snake {
@@ -216,7 +216,7 @@ impl Board {
         *element = 0
       }
     }
-    for (index, element) in snake.snake_blocks().iter().enumerate() {
+    for (index, _element) in snake.snake_blocks().iter().enumerate() {
       if index == 0 {
         prev_x_value = self.body_x_positions[index];
         prev_y_value = self.body_y_positions[index];
