@@ -207,8 +207,6 @@ impl Board {
     pub fn get_snake_position(&mut self, snake: &Snake) {
         let mut prev_x_value = 0;
         let mut prev_y_value = 0;
-        let mut temp_x = 0;
-        let mut temp_y = 0;
         for element in self.area.iter_mut() {
             if *element == 1 {
                 *element = 0
@@ -221,8 +219,8 @@ impl Board {
                 self.body_x_positions[index as usize] = self.width * self.snake_head_x * 10;
                 self.body_y_positions[index as usize] = self.height * self.snake_head_y * 10;
             } else {
-                temp_x = prev_x_value;
-                temp_y = prev_y_value;
+                let temp_x = prev_x_value;
+                let temp_y = prev_y_value;
                 prev_x_value = self.body_x_positions[index];
                 prev_y_value = self.body_y_positions[index];
                 self.body_x_positions[index as usize] = temp_x;
