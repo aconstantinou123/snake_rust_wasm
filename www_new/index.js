@@ -33,7 +33,7 @@ const clearRect = () => {
 const drawRect = () => {
   board.get_body_x_positions().forEach((x, index) => {
     const y = board.get_body_y_positions()[index]
-    ctx.fillRect(x - 1, y - 1, snakeBlockSize + 2, snakeBlockSize + 2)
+    ctx.fillRect(x, y, snakeBlockSize - 2, snakeBlockSize - 2)
   });
 }
 
