@@ -69,6 +69,7 @@ const movesSnake = (direction) => {
   drawFood()
   clearInterval(interval)
   interval = setInterval(() => {
+    if(snake.get_is_alive()){
     clearRect()
     snakeDirection(direction)
     if(!food.get_is_eaten()){
@@ -87,11 +88,16 @@ const movesSnake = (direction) => {
     }
     renderScore()
     drawRect()
+  } else {
+    const scoreHeader = document.getElementById("score")
+    const score = (snake.get_snake_length() - 1) * 10
+    scoreHeader.innerText = `Game Over. Final Score:${score}`
+    clearInterval(interval)
+  }
   }, speed)
 }
 
 document.addEventListener('keydown', function(event) {
-  if(snake.get_is_alive()){
     const key = event.key
     if(key === 'w'){
       movesSnake(key)
@@ -102,11 +108,6 @@ document.addEventListener('keydown', function(event) {
     } else if(key === 'd'){
       movesSnake(key)
     }
-  } else {
-    const scoreHeader = document.getElementById("score")
-    scoreHeader.innerText = 'Game Over'
-    clearInterval(interval)
-  }
 })
 
 const startButton = document.getElementById("start")
